@@ -1,0 +1,18 @@
+
+- name: configure Ferm Path 
+  file:
+    path: /etc/ferm/ferm.d
+    owner: root
+    group: root
+    force: true
+    state: directory
+    mode: u=rw,g=rx,o=rx
+
+- name: Configure ferm.conf
+  template: 
+    src: ferm.conf 
+    dest: /etc/ferm/ferm.conf
+    owner: root
+    group: root
+    mode: u=rw,g=,o=
+

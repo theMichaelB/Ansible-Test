@@ -1,0 +1,9 @@
+---
+- name: Ensure /home/ubuntu dir exists
+  file:
+    path: /home/ubuntu
+    state: directory
+
+
+- name: install ferm
+  package: pkg=ferm state=present     

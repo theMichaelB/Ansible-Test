@@ -1,0 +1,12 @@
+---
+- name: install strongswan
+  package: pkg=strongswan state=present
+
+
+
+- name: symlink strongswan
+  file:
+    src: /usr/sbin/strongswan
+    dest: /usr/sbin/ipsec
+    state: link  
+  when: ansible_os_family == 'RedHat'
