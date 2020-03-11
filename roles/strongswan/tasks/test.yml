@@ -1,0 +1,12 @@
+- name: Include vars of stuff.yaml into the 'stuff' variable (2.2).
+  include_vars:
+    file: vpn.yml
+
+- debug:
+    msg: 
+    - "{{ item.1.foo }}"
+  with_subelements:
+    - "{{ VPN }}"
+    - settings
+  when: (item.1.foo == 'foo2')
+  

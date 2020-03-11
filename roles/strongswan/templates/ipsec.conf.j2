@@ -1,0 +1,19 @@
+#Documentation for these sections can be found at - https://wiki.strongswan.org/projects/strongswan/wiki/ConnSection
+conn %default
+        #This usually changes per vendor - specifices the time before the ike tunnel is torn down and recreated 
+        ikelifetime=8h
+        #generally leave this as ikev1, we've never used ikev2, and it isn't widely available.
+        #keyexchange=ikev1
+        #This usually changes per vendor - specifices the time between ike key rotations 
+        keylife=1h
+        rekeymargin=540s
+        type=tunnel
+        authby=secret
+        auto=start
+        keyingtries=%forever
+        #because the box doesn't know its external IP address, left needs to be %any
+        left=%any
+        #this is an identifying string, it usually needs to be the external IP, string is used in ipsec.secrets 
+        leftid={{ ipify_public_ip }}
+
+include {{ ipsec_Path }}*.conf

@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  # This is just the sample data from your question.
+  vars:
+    target_vm: BOSDEKARLSSP006
+    results:
+      totalRecordsWithoutPaging: 1234
+      jobs:
+      - jobSummary:
+          totalNumOfFiles: 0
+          jobId: 8035
+          destClientName: BOSDEKARLSSP010
+          destinationClient:
+            clientId: 10
+            clientName: BOSDEKARLSSP010
+      - jobSummary:
+          totalNumOfFiles: 0
+          jobId: 9629
+          destClientName: BOSDEKARLSSP006
+          destinationClient:
+            clientId: 11
+            clientName: BOSDEKARLSSP006
+
+  tasks:
+    - name: get job ID
+      set_fact:
+        job_id: "{{ results|json_query('jobs[?jobSummary.destClientName == `{}`]|[0].jobSummary.jobId'.format(target_vm)) }}"
+
+    - debug:
+        var: job_id

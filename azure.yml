@@ -2,9 +2,7 @@
 # This playbook deploys the whole application stack in this site.
 
 - name: install strongswan
-  hosts: VPN
-  become: true
-  gather_facts: yes #IMPORTANT
+  hosts: localhost
 
   roles:
-    - strongswan
+    - azure

@@ -16,3 +16,14 @@
     group: root
     mode: u=rw,g=,o=
 
+- name: get public IP
+  ipify_facts:
+  register: public_ip
+- name: output
+  debug: msg="{{ public_ip }}"  
+
+- name: testing templating
+  template:
+    src: ipsec.conf.j2
+    dest: /tmp/ipsec.conf
+    

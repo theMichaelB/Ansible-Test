@@ -1,0 +1,6 @@
+- include_vars: VPN.yml
+
+- import_tasks: deployVPN.yml
+- import_tasks: DeployBottomVpn.yml
+
+#- import_tasks: LoadBalancer.yml

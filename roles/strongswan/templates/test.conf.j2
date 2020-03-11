@@ -1,0 +1,12 @@
+conn {{ item.0.name }}
+        ikelifetime={{ item.1.ikelifetime }}
+        lifetime={{ item.1.lifetime }}
+        reqid={{ ansible_loop.index }}
+        ike={{ item.1.ike }}
+        esp={{ item.1.esp }}
+        right={{ item.1.right }}
+        rightsubnet={{ item.1.rightsubnet }}
+        leftsubnet={{ item.1.leftsubnet }}
+        keyexchange={{ item.1.keyexchange }}
+        auto={{ item.1.auto }}
+

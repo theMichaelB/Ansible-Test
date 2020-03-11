@@ -1,0 +1,151 @@
+- name: Create virtual network
+  azure_rm_virtualnetwork:
+    resource_group: "{{ resource_Group_Name }}"
+    name: topVnet
+    address_prefixes: "10.0.0.0/16"
+- name: Add vpn subnet
+  azure_rm_subnet:
+    resource_group: "{{ resource_Group_Name }}"
+    name: vpn
+    address_prefix: "10.0.1.0/24"
+    virtual_network: topVnet     
+- name: add host subnet
+  azure_rm_subnet:
+    resource_group: "{{ resource_Group_Name }}"
+    name: host
+    address_prefix: "10.0.2.0/24"
+    virtual_network: topVnet      
+
+   
+- name: Create Host Public IP 
+  azure_rm_publicipaddress:
+    resource_group: "{{ resource_Group_Name }}"
+    name: TopHostPip
+    allocation_method: static    
+
+
+- name: Create VPN security group
+  azure_rm_securitygroup:
+    resource_group: "{{ resource_Group_Name }}"
+    name: TopVpnSG
+    rules:
+      - name: SSH
+        protocol: Tcp
+        destination_port_range: 22
+        access: Allow
+        priority: 101
+        direction: Inbound    
+      - name: IPSEC
+        protocol: Udp
+        destination_port_range:
+        - 4500
+        - 500
+        access: Allow
+        priority: 102
+        direction: Inbound    
+
+  
+- name: Create Host Public IP 
+  azure_rm_publicipaddress:
+    resource_group: "{{ resource_Group_Name }}"
+    name: ToplbPip
+    allocation_method: static    
+
+
+
+- name: create Top load balancer
+  azure_rm_loadbalancer:
+    resource_group: "{{ resource_Group_Name }}"
+    name: TopVpnLb
+    frontend_ip_configurations:
+      - name: frontendipconf0
+        public_ip_address: ToplbPip
+    backend_address_pools:
+      - name: backendaddrpool0
+    probes:
+      - name: prob0
+        port: 22
+    load_balancing_rules:
+      - name: ike
+        frontend_ip_configuration: frontendipconf0
+        backend_address_pool: backendaddrpool0
+        frontend_port: 500
+        protocol: Udp
+        backend_port: 500
+        probe: prob0
+      - name: esp
+        frontend_ip_configuration: frontendipconf0
+        backend_address_pool: backendaddrpool0
+        frontend_port: 4500
+        backend_port: 4500
+        protocol: Udp
+        probe: prob0
+      - name: ssh
+        frontend_ip_configuration: frontendipconf0
+        backend_address_pool: backendaddrpool0
+        frontend_port: 22
+        backend_port: 22
+        probe: prob0
+
+- name: Create Host NIC
+  azure_rm_networkinterface:
+    resource_group: "{{ resource_Group_Name }}"
+    name: TopHostNic
+    virtual_network: topVnet
+    subnet: host
+    security_group: TopVpnSG
+    ip_configurations:
+      - name: ipconfig1
+        public_ip_address_name: TopHostPip
+        primary: True
+
+- name: Create Vpn NIC
+  azure_rm_networkinterface:
+    resource_group: "{{ resource_Group_Name }}"
+    name: TopVpnNic
+    ip_forwarding: True
+    virtual_network: topVnet
+    subnet: vpn
+    security_group: TopVpnSG
+    ip_configurations:
+      - name: ipconfig1
+        #public_ip_address_name: TopVpnPip
+        primary: true
+        load_balancer_backend_address_pools: subscriptions/911b23ce-1b55-45ad-8578-b433aa1ebd5b/resourceGroups/Redhat-Test/providers/Microsoft.Network/loadBalancers/TopVpnLb/backendAddressPools/backendaddrpool0
+
+- name: Create TopVpnVm
+  azure_rm_virtualmachine:
+    resource_group: "{{ resource_Group_Name }}"
+    name: TopVpnVm
+    vm_size: Standard_DS1_v2
+    managed_disk_type: Standard_LRS
+    admin_username: ansible
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: /home/ansible/.ssh/authorized_keys
+        key_data: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDCJPB59MbunBckIPXUA5ugdihbh0OjmASGl485not4MQPmeKZEDQyfqiF91+2BqkBafMwDfxsyueVPOBdZ/l03NWMCk0cUauRizvU1wfdcGGl0AyimR6Zi0MaAGe9kmgTnTv3UL/0LkJ+rNWrdVRtRv11gUz8AZyh3V/XzCMaTjUl9j8Rq3irRLnicz3Ov5bhYbLOwyrLO6kgZc7B9lVKzGwUW0bAKeHUbD9TY8Cpc3r4fMZsbsRw+uN/njUakmGNZvDHquuIq/dfM8i/zBSN7VZ6yuF4ZjZE/0vAVQUweBybHS6hYtPzrJJR2L1gqgrRMwRyGcRf/t6X8mmZUwS+FiOLfW+XurUjcPaw37l+cnkdJfZuPDoMEljw6FvEjHtmGUOt9zui+MHj4a1QTIi7P7u024l5GXEvKaO6hy+kWRIWc5rd/+qnAF8KB7Kud3+TaBzEsSL5g5quARK8zdujk86RmM7UTH2zxNas7M6x4Xj198/2TTnzV5hhbmc2BiI8= michael@sc
+    network_interfaces: TopVpnNic
+    image:
+      offer: RHEL
+      publisher: RedHat
+      sku: '8.1'
+      version: latest
+
+
+- name: Create TopHostVm
+  azure_rm_virtualmachine:
+    resource_group: "{{ resource_Group_Name }}"
+    name: TopHostVm
+    vm_size: Standard_DS1_v2
+    managed_disk_type: Standard_LRS
+    admin_username: ansible
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: /home/ansible/.ssh/authorized_keys
+        key_data: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDCJPB59MbunBckIPXUA5ugdihbh0OjmASGl485not4MQPmeKZEDQyfqiF91+2BqkBafMwDfxsyueVPOBdZ/l03NWMCk0cUauRizvU1wfdcGGl0AyimR6Zi0MaAGe9kmgTnTv3UL/0LkJ+rNWrdVRtRv11gUz8AZyh3V/XzCMaTjUl9j8Rq3irRLnicz3Ov5bhYbLOwyrLO6kgZc7B9lVKzGwUW0bAKeHUbD9TY8Cpc3r4fMZsbsRw+uN/njUakmGNZvDHquuIq/dfM8i/zBSN7VZ6yuF4ZjZE/0vAVQUweBybHS6hYtPzrJJR2L1gqgrRMwRyGcRf/t6X8mmZUwS+FiOLfW+XurUjcPaw37l+cnkdJfZuPDoMEljw6FvEjHtmGUOt9zui+MHj4a1QTIi7P7u024l5GXEvKaO6hy+kWRIWc5rd/+qnAF8KB7Kud3+TaBzEsSL5g5quARK8zdujk86RmM7UTH2zxNas7M6x4Xj198/2TTnzV5hhbmc2BiI8= michael@sc
+    network_interfaces: TopHostNic
+    image:
+      offer: RHEL
+      publisher: RedHat
+      sku: '8.1'
+      version: latest

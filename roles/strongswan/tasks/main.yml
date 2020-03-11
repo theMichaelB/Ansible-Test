@@ -1,3 +1,7 @@
+- include_vars: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+- include_vars: redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: added in 2.4, previously you used 'include'
   import_tasks: redhat.yml
@@ -7,3 +11,5 @@
 - import_tasks: strongswan.yml
 
 - import_tasks: configureFerm.yml
+- import_tasks: configureIpsec.yml
+

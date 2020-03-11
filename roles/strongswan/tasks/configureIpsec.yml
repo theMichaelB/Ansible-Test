@@ -1,0 +1,56 @@
+- name: Ipsec Block 
+  block: 
+  - name: include VPN config
+    include_vars:
+      file: vpn.yml
+
+
+  - name: get public IP
+    ipify_facts:
+
+  - name: clear existing ipsec.d files
+    file:
+      path: "{{ ipsec_Path }}*.conf"
+      state: absent
+
+
+  - name: Deploying ipsec.d files
+    template:
+      src: test.conf.j2
+      dest: "{{ ipsec_Path }}{{ item.0.name }}.conf"
+      owner: root
+      group: root
+      mode: u=rw,g=,o=
+    with_subelements:
+      - "{{ VPN }}"
+      - settings
+    loop_control:
+      extended: yes
+    when: (item.1.ExternalIp == ipify_public_ip)
+    
+
+  - name: testing templating
+    template:
+      src: ipsec.conf.j2
+      dest: "{{ ipsec_Conf_Path }}"
+      owner: root
+      group: root
+      mode: u=rw,g=,o=
+
+
+  - name: Listen on 1.2.3.4
+    lineinfile: 
+      dest: "{{ ipsec_Secrets_Path }}"
+      regexp: "^({{ ipify_public_ip }})\\s({{ item.1.right }})"
+      line: "{{ ipify_public_ip }} {{ item.1.right }} : PSK '{{ item.1.secret }}'"
+      state: present
+    with_subelements:
+      - "{{ VPN }}"
+      - settings
+    loop_control:
+      extended: yes
+    when: (item.1.ExternalIp == ipify_public_ip)
+
+  rescue: 
+    - debug: 
+        msg: "IPSEC configuration failed - aborting"

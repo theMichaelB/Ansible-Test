@@ -1,0 +1,29 @@
+VPN:
+- name: TopVpnVm
+  settings: 
+    - ExternalIp: "51.145.38.174"
+      esp: aes256-sha512-ecp521!
+      ike: aes256-sha512-ecp521!
+      keyexchange: ikev2
+      rightsubnet: 10.0.1.0/24
+      right: 51.132.132.182
+      leftsubnet: 10.1.1.0/24
+      ikelifetime: 4h
+      lifetime: 8h
+      secret: "thisisasecret"
+      auto: start
+
+- name: BottomVpnVm
+  settings:
+    - ExternalIp: "51.132.132.182"
+      esp: aes256-sha512-ecp521!
+      ike: aes256-sha512-ecp521!
+      keyexchange: ikev2
+      right: 51.145.38.174
+      rightsubnet: 10.1.1.0/24
+      leftsubnet: 10.0.1.0/24
+      ikelifetime: 8h
+      lifetime: 8h
+      secret: "thisisasecret"
+      auto: start
+      

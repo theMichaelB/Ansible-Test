@@ -1,0 +1,3 @@
+ipsec_Path: /etc/ipsec.d/
+ipsec_Conf_Path: /etc/ipsec.conf
+ipsec_Secrets_Path: /etc/ipsec.secrets

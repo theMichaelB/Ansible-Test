@@ -1,0 +1,3 @@
+ipsec_Path: /etc/strongswan/ipsec.d/
+ipsec_Conf_Path: /etc/strongswan/ipsec.conf
+ipsec_Secrets_Path: /etc/strongswan/ipsec.secrets
